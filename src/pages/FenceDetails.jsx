@@ -16,6 +16,7 @@ function FenceDetails() {
     end_posts: "",
     height: 6,
     option_d: "Yes",
+    dirt_complexity: "soft"
   });
 
   const [error, setError] = useState("");
@@ -142,6 +143,20 @@ function FenceDetails() {
           >
             <option value="Yes">Yes</option>
             <option value="No">No</option>
+          </select>
+        </label>
+
+        <label className="block">
+          Dirt Complexity:
+          <select
+            name="dirt_complexity"
+            value={formData.dirt_complexity}
+            onChange={handleChange}
+            className="w-full mt-1 border px-3 py-2"
+          >
+            <option value="soft">Soft</option>
+            <option value="hard">Hard</option>
+            <option value="jack hammer">Jack Hammer</option>
           </select>
         </label>
 
