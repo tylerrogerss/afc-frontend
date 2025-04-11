@@ -16,7 +16,8 @@ function FenceDetails() {
     end_posts: "",
     height: 6,
     option_d: "Yes",
-    dirt_complexity: "soft"
+    dirt_complexity: "soft",
+    grade_of_scope_complexity: 10
   });
 
   const [error, setError] = useState("");
@@ -25,6 +26,8 @@ function FenceDetails() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
+  const preventScroll = (e) => e.target.blur();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,6 +45,7 @@ function FenceDetails() {
       corner_posts: parseInt(formData.corner_posts),
       end_posts: parseInt(formData.end_posts),
       height: parseInt(formData.height),
+      grade_of_scope_complexity: parseFloat(formData.grade_of_scope_complexity)
     };
 
     try {
@@ -91,7 +95,7 @@ function FenceDetails() {
             name="linear_feet"
             value={formData.linear_feet}
             onChange={handleChange}
-            onWheel={(e) => e.target.blur()}
+            onWheel={preventScroll}
             className="w-full mt-1 border px-3 py-2"
             required
           />
@@ -104,7 +108,7 @@ function FenceDetails() {
             name="corner_posts"
             value={formData.corner_posts}
             onChange={handleChange}
-            onWheel={(e) => e.target.blur()}
+            onWheel={preventScroll}
             className="w-full mt-1 border px-3 py-2"
           />
         </label>
@@ -116,7 +120,7 @@ function FenceDetails() {
             name="end_posts"
             value={formData.end_posts}
             onChange={handleChange}
-            onWheel={(e) => e.target.blur()}
+            onWheel={preventScroll}
             className="w-full mt-1 border px-3 py-2"
           />
         </label>
@@ -128,7 +132,7 @@ function FenceDetails() {
             name="height"
             value={formData.height}
             onChange={handleChange}
-            onWheel={(e) => e.target.blur()}
+            onWheel={preventScroll}
             className="w-full mt-1 border px-3 py-2"
           />
         </label>
@@ -157,7 +161,22 @@ function FenceDetails() {
             <option value="soft">Soft</option>
             <option value="hard">Hard</option>
             <option value="jack hammer">Jack Hammer</option>
+            <option value="core drill">Core Drill</option>
           </select>
+        </label>
+
+        <label className="block">
+          Grade of Scope Complexity (%):
+          <input
+            type="number"
+            name="grade_of_scope_complexity"
+            value={formData.grade_of_scope_complexity}
+            onChange={handleChange}
+            onWheel={preventScroll}
+            className="w-full mt-1 border px-3 py-2"
+            min="0"
+            max="45"
+          />
         </label>
 
         <button
