@@ -16,27 +16,19 @@ function FenceDetails() {
     end_posts: "",
     height: 6,
     option_d: "Yes",
-    dirt_complexity: "soft",
-    grade_of_scope_complexity: 10
   });
 
   const [error, setError] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const preventScroll = (e) => e.target.blur();
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
-    if (!jobId) {
-      setError("Missing Job ID from previous form.");
-      return;
-    }
 
     const payload = {
       job_id: jobId,
@@ -45,7 +37,6 @@ function FenceDetails() {
       corner_posts: parseInt(formData.corner_posts),
       end_posts: parseInt(formData.end_posts),
       height: parseInt(formData.height),
-      grade_of_scope_complexity: parseFloat(formData.grade_of_scope_complexity)
     };
 
     try {
@@ -57,12 +48,45 @@ function FenceDetails() {
 
       const result = await response.json();
       if (response.ok) {
-        navigate("/cost-estimation", { state: { job_id: payload.job_id } });
+        setSubmitted(true);
+        console.log("Fence details submitted:", result);
       } else {
         setError(result.detail || "Submission failed.");
       }
     } catch (err) {
       setError("Failed to connect to server.");
+    }
+  };
+
+  const handleGenerateMaterials = async () => {
+    if (!jobId) {
+      alert("Missing Job ID");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/generate_materials_list`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ job_id: jobId }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to generate materials list.");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "Materials_List.pdf";
+      link.click();
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
     }
   };
 
@@ -73,118 +97,70 @@ function FenceDetails() {
       {error && <p className="text-red-600 mb-4">{error}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <label className="block">
-          Fence Type:
-          <select
-            name="fence_type"
-            value={formData.fence_type}
-            onChange={handleChange}
-            className="w-full mt-1 border px-3 py-2"
+        {["fence_type", "linear_feet", "corner_posts", "end_posts", "height", "option_d"].map((field, idx) => (
+          <label className="block" key={idx}>
+            {field.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}:
+            {field === "fence_type" || field === "option_d" ? (
+              <select
+                name={field}
+                value={formData[field]}
+                onChange={handleChange}
+                className="w-full mt-1 border px-3 py-2"
+              >
+                {field === "fence_type" ? (
+                  <>
+                    <option>Chain Link</option>
+                    <option>SP Wrought Iron</option>
+                    <option>Vinyl</option>
+                    <option>Wood</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                  </>
+                )}
+              </select>
+            ) : (
+              <input
+                type="number"
+                name={field}
+                value={formData[field]}
+                onChange={handleChange}
+                onWheel={(e) => e.target.blur()}
+                className="w-full mt-1 border px-3 py-2"
+                required={field !== "corner_posts" && field !== "end_posts"}
+              />
+            )}
+          </label>
+        ))}
+
+        <div className="flex flex-col gap-3 mt-6">
+          <button
+            type="submit"
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
           >
-            <option>Chain Link</option>
-            <option>SP Wrought Iron</option>
-            <option>Vinyl</option>
-            <option>Wood</option>
-          </select>
-        </label>
+            Submit Fence Details
+          </button>
 
-        <label className="block">
-          Linear Feet:
-          <input
-            type="number"
-            name="linear_feet"
-            value={formData.linear_feet}
-            onChange={handleChange}
-            onWheel={preventScroll}
-            className="w-full mt-1 border px-3 py-2"
-            required
-          />
-        </label>
-
-        <label className="block">
-          Corner Posts:
-          <input
-            type="number"
-            name="corner_posts"
-            value={formData.corner_posts}
-            onChange={handleChange}
-            onWheel={preventScroll}
-            className="w-full mt-1 border px-3 py-2"
-          />
-        </label>
-
-        <label className="block">
-          End Posts:
-          <input
-            type="number"
-            name="end_posts"
-            value={formData.end_posts}
-            onChange={handleChange}
-            onWheel={preventScroll}
-            className="w-full mt-1 border px-3 py-2"
-          />
-        </label>
-
-        <label className="block">
-          Height (ft):
-          <input
-            type="number"
-            name="height"
-            value={formData.height}
-            onChange={handleChange}
-            onWheel={preventScroll}
-            className="w-full mt-1 border px-3 py-2"
-          />
-        </label>
-
-        <label className="block">
-          Option D (Top Rail):
-          <select
-            name="option_d"
-            value={formData.option_d}
-            onChange={handleChange}
-            className="w-full mt-1 border px-3 py-2"
+          <button
+            type="button"
+            onClick={handleGenerateMaterials}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-          </select>
-        </label>
+            Generate Materials List
+          </button>
 
-        <label className="block">
-          Dirt Complexity:
-          <select
-            name="dirt_complexity"
-            value={formData.dirt_complexity}
-            onChange={handleChange}
-            className="w-full mt-1 border px-3 py-2"
-          >
-            <option value="soft">Soft</option>
-            <option value="hard">Hard</option>
-            <option value="jack hammer">Jack Hammer</option>
-            <option value="core drill">Core Drill</option>
-          </select>
-        </label>
-
-        <label className="block">
-          Grade of Scope Complexity (%):
-          <input
-            type="number"
-            name="grade_of_scope_complexity"
-            value={formData.grade_of_scope_complexity}
-            onChange={handleChange}
-            onWheel={preventScroll}
-            className="w-full mt-1 border px-3 py-2"
-            min="0"
-            max="45"
-          />
-        </label>
-
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Submit Fence Details
-        </button>
+          {submitted && (
+            <button
+              type="button"
+              onClick={() => navigate("/cost-estimation", { state: { job_id: jobId } })}
+              className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800"
+            >
+              Continue to Cost Estimation
+            </button>
+          )}
+        </div>
       </form>
     </div>
   );
