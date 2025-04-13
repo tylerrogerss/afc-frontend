@@ -1,4 +1,3 @@
-// src/pages/CostEstimation.jsx
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
@@ -16,9 +15,10 @@ function CostEstimation() {
 
   const [formData, setFormData] = useState({
     daily_rate: 150,
-    num_days: 5,
-    num_employees: 3,
-    pricing_strategy: "Master Halco Pricing"
+    pricing_strategy: "Master Halco Pricing",
+    dirt_complexity: "soft",
+    grade_of_slope_complexity: 0.0,
+    productivity: 1.0
   });
 
   const [result, setResult] = useState(null);
@@ -49,6 +49,7 @@ function CostEstimation() {
       const data = await response.json();
 
       if (response.ok) {
+        console.log("Cost estimation response:", data);
         setResult(data);
       } else {
         setError(data.detail || "Error estimating cost.");
@@ -68,9 +69,7 @@ function CostEstimation() {
     try {
       const response = await fetch(`${API_URL}/generate_proposal`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ job_id: jobId }),
       });
 
@@ -109,30 +108,6 @@ function CostEstimation() {
         </label>
 
         <label className="block">
-          Number of Days:
-          <input
-            type="number"
-            name="num_days"
-            value={formData.num_days}
-            onChange={handleChange}
-            onWheel={preventScroll}
-            className="w-full border px-3 py-2"
-          />
-        </label>
-
-        <label className="block">
-          Number of Employees:
-          <input
-            type="number"
-            name="num_employees"
-            value={formData.num_employees}
-            onChange={handleChange}
-            onWheel={preventScroll}
-            className="w-full border px-3 py-2"
-          />
-        </label>
-
-        <label className="block">
           Pricing Strategy:
           <select
             name="pricing_strategy"
@@ -143,6 +118,48 @@ function CostEstimation() {
             <option value="Master Halco Pricing">Master Halco Pricing</option>
             <option value="Fence Specialties Pricing">Fence Specialties Pricing</option>
           </select>
+        </label>
+
+        <label className="block">
+          Dirt Complexity:
+          <select
+            name="dirt_complexity"
+            value={formData.dirt_complexity}
+            onChange={handleChange}
+            className="w-full border px-3 py-2"
+          >
+            <option value="soft">Soft</option>
+            <option value="hard">Hard</option>
+            <option value="core drill">Core Drill</option>
+            <option value="jack hammer">Jack Hammer</option>
+          </select>
+        </label>
+
+        <label className="block">
+          Grade of Slope Complexity (%):
+          <input
+            type="number"
+            name="grade_of_slope_complexity"
+            value={formData.grade_of_slope_complexity}
+            onChange={handleChange}
+            onWheel={preventScroll}
+            className="w-full border px-3 py-2"
+          />
+        </label>
+
+        <label className="block">
+          Productivity (0.01 - 1.00):
+          <input
+            type="number"
+            name="productivity"
+            step="0.01"
+            min="0.01"
+            max="1.00"
+            value={formData.productivity}
+            onChange={handleChange}
+            onWheel={preventScroll}
+            className="w-full border px-3 py-2"
+          />
         </label>
 
         <button
@@ -189,14 +206,38 @@ function CostEstimation() {
             </div>
           </div>
 
+          {/* === Labor Cost Options Table === */}
+          {result.costs.labor_cost_options && (
+            <div>
+              <h3 className="text-lg font-semibold mb-2">👷 Labor Cost Options</h3>
+              <table className="w-full border-collapse border border-gray-300 text-sm">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border px-2 py-1">Crew Size</th>
+                    <th className="border px-2 py-1">Days Required</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {result.costs.labor_cost_options.map((option, index) => (
+                    <tr key={index}>
+                      <td className="border px-2 py-1">{option.crew_size}</td>
+                      <td className="border px-2 py-1">{formatNumber(option.days_required)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
           {/* === Summary Breakdown === */}
           <div className="bg-gray-50 p-4 border rounded">
             <h3 className="text-lg font-semibold mb-2">🧾 Summary</h3>
+            <p><strong>Material Total:</strong> ${formatNumber(result.costs.material_total)}</p>
             <p><strong>Material Tax:</strong> ${formatNumber(result.costs.material_tax)}</p>
             <p><strong>Delivery Charge:</strong> ${formatNumber(result.costs.delivery_charge)}</p>
             <p><strong>Labor Cost:</strong> ${formatNumber(result.costs.labor_costs.total_labor_cost)}</p>
             <p><strong>Total Cost:</strong> ${formatNumber(result.costs.total_cost)}</p>
-            <p><strong>Price Per Linear Foot:</strong> ${formatNumber(result.price_per_linear_foot)}</p>
+            <p><strong>Cost Per Linear Foot:</strong> ${formatNumber(result.price_per_linear_foot)}</p>
           </div>
 
           {/* === Profit Margin Table === */}
@@ -208,7 +249,7 @@ function CostEstimation() {
                   <th className="border px-2 py-1">Margin</th>
                   <th className="border px-2 py-1">Revenue</th>
                   <th className="border px-2 py-1">Profit</th>
-                  <th className="border px-2 py-1">Price Per LF</th>
+                  <th className="border px-2 py-1">Cost Per LF</th>
                 </tr>
               </thead>
               <tbody>
@@ -224,7 +265,6 @@ function CostEstimation() {
             </table>
           </div>
 
-          {/* === Generate Button === */}
           <button
             onClick={handleGenerateProposal}
             className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
