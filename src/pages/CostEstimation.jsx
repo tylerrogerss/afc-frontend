@@ -292,7 +292,7 @@ function CostEstimation() {
                 <th className="border px-2 py-1">Margin</th>
                 <th className="border px-2 py-1">Revenue</th>
                 <th className="border px-2 py-1">Profit</th>
-                <th className="border px-2 py-1">Profit Per LF</th>
+                <th className="border px-2 py-1">Price Per LF</th>
               </tr>
             </thead>
             <tbody>
@@ -322,7 +322,7 @@ function CostEstimation() {
             <p><strong>Delivery Charge:</strong> ${formatNumber(result.costs.delivery_charge)}</p>
             <p><strong>Labor Cost:</strong> ${formatNumber(result.costs.labor_costs.total_labor_cost)}</p>
             <p><strong>Total Cost:</strong> ${formatNumber(result.costs.total_cost)}</p>
-            <p><strong>Price Per Linear Foot:</strong> ${formatNumber(result.price_per_linear_foot)}</p>
+            <p><strong>Cost Per Linear Foot:</strong> ${formatNumber(result.price_per_linear_foot)}</p>
             {selectedCrewSize && <p><strong>Selected Crew Size:</strong> {selectedCrewSize} workers</p>}
             {selectedProfitMargin && <p><strong>Selected Profit Margin:</strong> {selectedProfitMargin}</p>}
           </div>
