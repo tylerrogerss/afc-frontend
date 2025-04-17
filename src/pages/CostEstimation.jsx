@@ -134,7 +134,7 @@ function CostEstimation() {
       {materialBreakdown && (
         <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-lg font-semibold">📦 Materials Breakdown</h3>
+            <h3 className="text-lg font-semibold">Materials Breakdown</h3>
             <div className="flex space-x-2">
               {pricingOptions.map((option) => (
                 <button
@@ -243,7 +243,7 @@ function CostEstimation() {
 
       {result?.costs?.labor_duration_options && (
         <div className="mt-8">
-          <h3 className="text-lg font-semibold mb-2">👷 Labor Duration Options</h3>
+          <h3 className="text-lg font-semibold mb-2">Labor Duration Options</h3>
           <table className="w-full border-collapse border border-gray-300 text-sm">
             <thead>
               <tr className="bg-gray-100">
@@ -285,7 +285,7 @@ function CostEstimation() {
 
       {result?.costs?.profit_margins && (
         <div className="mt-8">
-          <h3 className="text-lg font-semibold mb-2">💰 Profit Margin Projections</h3>
+          <h3 className="text-lg font-semibold mb-2">Profit Margin Projections</h3>
           <table className="w-full border-collapse border border-gray-300 text-sm">
             <thead>
               <tr className="bg-gray-100">
@@ -316,7 +316,7 @@ function CostEstimation() {
       {result?.costs && (
         <>
           <div className="mt-8 bg-gray-50 p-4 border rounded">
-            <h3 className="text-lg font-semibold mb-2">🧾 Summary</h3>
+            <h3 className="text-lg font-semibold mb-2">Summary</h3>
             <p><strong>Material Total:</strong> ${formatNumber(result.costs.material_total)}</p>
             <p><strong>Material Tax:</strong> ${formatNumber(result.costs.material_tax)}</p>
             <p><strong>Delivery Charge:</strong> ${formatNumber(result.costs.delivery_charge)}</p>
