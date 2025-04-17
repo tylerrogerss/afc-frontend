@@ -1,4 +1,4 @@
-// Full file with custom crew size input added back under labor duration
+// Full working version with Generate Job Bid and all result sections visible
 
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -106,6 +106,24 @@ function CostEstimation() {
       setCustomDays(estimated);
     } else {
       setCustomDays(null);
+    }
+  };
+
+  const handleGenerateProposal = async () => {
+    try {
+      const response = await fetch(`${API_URL}/generate_proposal`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ job_id: jobId }),
+      });
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "AFC_Job_Proposal.pdf";
+      link.click();
+    } catch (err) {
+      console.error("Failed to generate job proposal:", err);
     }
   };
 
@@ -247,7 +265,6 @@ function CostEstimation() {
             </tbody>
           </table>
 
-          {/* Custom crew size input */}
           <div className="mt-4">
             <label className="block text-sm font-medium mb-1">Custom Crew Size</label>
             <input
@@ -297,17 +314,28 @@ function CostEstimation() {
       )}
 
       {result?.costs && (
-        <div className="mt-8 bg-gray-50 p-4 border rounded">
-          <h3 className="text-lg font-semibold mb-2">🧾 Summary</h3>
-          <p><strong>Material Total:</strong> ${formatNumber(result.costs.material_total)}</p>
-          <p><strong>Material Tax:</strong> ${formatNumber(result.costs.material_tax)}</p>
-          <p><strong>Delivery Charge:</strong> ${formatNumber(result.costs.delivery_charge)}</p>
-          <p><strong>Labor Cost:</strong> ${formatNumber(result.costs.labor_costs.total_labor_cost)}</p>
-          <p><strong>Total Cost:</strong> ${formatNumber(result.costs.total_cost)}</p>
-          <p><strong>Price Per Linear Foot:</strong> ${formatNumber(result.price_per_linear_foot)}</p>
-          {selectedCrewSize && <p><strong>Selected Crew Size:</strong> {selectedCrewSize} workers</p>}
-          {selectedProfitMargin && <p><strong>Selected Profit Margin:</strong> {selectedProfitMargin}</p>}
-        </div>
+        <>
+          <div className="mt-8 bg-gray-50 p-4 border rounded">
+            <h3 className="text-lg font-semibold mb-2">🧾 Summary</h3>
+            <p><strong>Material Total:</strong> ${formatNumber(result.costs.material_total)}</p>
+            <p><strong>Material Tax:</strong> ${formatNumber(result.costs.material_tax)}</p>
+            <p><strong>Delivery Charge:</strong> ${formatNumber(result.costs.delivery_charge)}</p>
+            <p><strong>Labor Cost:</strong> ${formatNumber(result.costs.labor_costs.total_labor_cost)}</p>
+            <p><strong>Total Cost:</strong> ${formatNumber(result.costs.total_cost)}</p>
+            <p><strong>Price Per Linear Foot:</strong> ${formatNumber(result.price_per_linear_foot)}</p>
+            {selectedCrewSize && <p><strong>Selected Crew Size:</strong> {selectedCrewSize} workers</p>}
+            {selectedProfitMargin && <p><strong>Selected Profit Margin:</strong> {selectedProfitMargin}</p>}
+          </div>
+
+          <div className="mt-6">
+            <button
+              onClick={handleGenerateProposal}
+              className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Generate Job Bid
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
