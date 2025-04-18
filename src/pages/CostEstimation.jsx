@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const API_URL = "https://afc-proposal.onrender.com";
 
@@ -10,7 +11,11 @@ const formatNumber = (val) =>
 
 function CostEstimation() {
   const { state } = useLocation();
+  const navigate = useNavigate();
+
   const jobId = state?.job_id;
+  const linearFeet = state?.linear_feet;
+
 
   const pricingOptions = ["Master Halco Pricing", "Fence Specialties Pricing"];
 
@@ -26,6 +31,8 @@ function CostEstimation() {
   const [result, setResult] = useState(null);
   const [customCrewSize, setCustomCrewSize] = useState("");
   const [customDays, setCustomDays] = useState(null);
+  const [customMargin, setCustomMargin] = useState("");
+  const [customProjection, setCustomProjection] = useState(null);
   const [selectedProfitMargin, setSelectedProfitMargin] = useState(null);
   const [selectedCrewSize, setSelectedCrewSize] = useState(null);
   const [error, setError] = useState("");
@@ -127,8 +134,46 @@ function CostEstimation() {
     }
   };
 
+  const handleCustomMarginSubmit = () => {
+  const marginFloat = parseFloat(customMargin);
+  const totalCost = result?.costs?.total_cost;
+  const linearFeet = state?.linear_feet;
+
+  if (
+    isNaN(marginFloat) ||
+    !totalCost ||
+    !linearFeet
+  ) return;
+
+  const costPerLF = totalCost / linearFeet;
+
+  // ✅ NET PROFIT MARGIN revenue calc
+  const revenue = totalCost / (1 - marginFloat / 100);
+  const profit = revenue - totalCost;
+  const pricePerLF = revenue / linearFeet;
+  const profitPerLF = pricePerLF - costPerLF;
+
+  setCustomProjection({
+    revenue,
+    profit,
+    pricePerLF,
+    profitPerLF,
+  });
+};
+
+  
+
   return (
     <div className="max-w-3xl mx-auto mt-10 p-6 bg-white shadow rounded">
+      <div className="flex justify-end mb-4">
+  <button
+    onClick={() => navigate("/")}
+    className="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 text-sm font-medium"
+  >
+    + New Bid
+  </button>
+</div>
+
       <h2 className="text-2xl font-bold mb-4">Cost Estimation</h2>
 
       {materialBreakdown && (
@@ -287,29 +332,68 @@ function CostEstimation() {
         <div className="mt-8">
           <h3 className="text-lg font-semibold mb-2">Profit Margin Projections</h3>
           <table className="w-full border-collapse border border-gray-300 text-sm">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border px-2 py-1">Margin</th>
-                <th className="border px-2 py-1">Revenue</th>
-                <th className="border px-2 py-1">Profit</th>
-                <th className="border px-2 py-1">Price Per LF</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(result.costs.profit_margins).map(([margin, values]) => (
-                <tr
-                  key={margin}
-                  className={`cursor-pointer ${selectedProfitMargin === margin ? 'bg-green-100' : ''}`}
-                  onClick={() => setSelectedProfitMargin(margin)}
-                >
-                  <td className="border px-2 py-1">{margin}</td>
-                  <td className="border px-2 py-1">${formatNumber(values.revenue)}</td>
-                  <td className="border px-2 py-1">${formatNumber(values.profit)}</td>
-                  <td className="border px-2 py-1">${formatNumber(values.price_per_linear_foot)}</td>
-                </tr>
-              ))}
-            </tbody>
+          <thead>
+  <tr className="bg-gray-100">
+    <th className="border px-2 py-1">Margin</th>
+    <th className="border px-2 py-1">Revenue</th>
+    <th className="border px-2 py-1">Profit</th>
+    <th className="border px-2 py-1">Price Per LF</th>
+    <th className="border px-2 py-1">Profit Per LF</th>
+  </tr>
+</thead>
+<tbody>
+  {Object.entries(result.costs.profit_margins).map(([margin, values]) => {
+    const profitPerLF = values.price_per_linear_foot - result.price_per_linear_foot;
+    return (
+      <tr
+        key={margin}
+        className={`cursor-pointer ${selectedProfitMargin === margin ? 'bg-green-100' : ''}`}
+        onClick={() => setSelectedProfitMargin(margin)}
+      >
+        <td className="border px-2 py-1">{margin}</td>
+        <td className="border px-2 py-1">${formatNumber(values.revenue)}</td>
+        <td className="border px-2 py-1">${formatNumber(values.profit)}</td>
+        <td className="border px-2 py-1">${formatNumber(values.price_per_linear_foot)}</td>
+        <td className="border px-2 py-1">${formatNumber(profitPerLF)}</td>
+      </tr>
+    );
+  })}
+</tbody>
+
           </table>
+          <div className="mt-4">
+  <h4 className="font-semibold mb-1 text-sm">Custom Profit Margin (%)</h4>
+  <div className="flex items-center gap-2">
+    <input
+      type="number"
+      step="0.1"
+      className="border px-3 py-1 text-sm w-32"
+      placeholder="e.g. 27.5"
+      value={customMargin}
+      onChange={(e) => setCustomMargin(e.target.value)}
+    />
+    <button
+  className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+  onClick={(e) => {
+    e.preventDefault();
+    handleCustomMarginSubmit();
+  }}
+>
+  Calculate
+</button>
+
+  </div>
+
+  {customProjection && (
+    <div className="mt-3 text-sm border rounded p-3 bg-gray-50">
+      <p><strong>Revenue:</strong> ${formatNumber(customProjection.revenue)}</p>
+      <p><strong>Profit:</strong> ${formatNumber(customProjection.profit)}</p>
+      <p><strong>Price Per LF:</strong> ${formatNumber(customProjection.pricePerLF)}</p>
+      <p><strong>Profit Per LF:</strong> ${formatNumber(customProjection.profitPerLF)}</p>
+    </div>
+  )}
+</div>
+
         </div>
       )}
 
@@ -323,8 +407,26 @@ function CostEstimation() {
             <p><strong>Labor Cost:</strong> ${formatNumber(result.costs.labor_costs.total_labor_cost)}</p>
             <p><strong>Total Cost:</strong> ${formatNumber(result.costs.total_cost)}</p>
             <p><strong>Cost Per Linear Foot:</strong> ${formatNumber(result.price_per_linear_foot)}</p>
-            {selectedCrewSize && <p><strong>Selected Crew Size:</strong> {selectedCrewSize} workers</p>}
-            {selectedProfitMargin && <p><strong>Selected Profit Margin:</strong> {selectedProfitMargin}</p>}
+            {selectedCrewSize && (() => {
+  const selectedOption = result.costs.labor_duration_options.find(
+    (option) => option.crew_size === selectedCrewSize
+  );
+  return (
+    <p>
+      <strong>Selected Crew Size:</strong> {selectedCrewSize} workers — Estimated Days: {formatNumber(selectedOption?.estimated_days || 0)}
+    </p>
+  );
+})()}
+
+{selectedProfitMargin && (() => {
+  const selected = result.costs.profit_margins[selectedProfitMargin];
+  return (
+    <p>
+      <strong>Selected Profit Margin:</strong> {selectedProfitMargin} — Price Per LF: ${formatNumber(selected?.price_per_linear_foot || 0)}
+    </p>
+  );
+})()}
+
           </div>
 
           <div className="mt-6">

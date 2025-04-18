@@ -65,6 +65,7 @@ function FenceDetails() {
           navigate("/cost-estimation", {
             state: {
               job_id: jobId,
+              linear_feet: formData.linear_feet,
               materialBreakdown: materialData,
             },
           });
