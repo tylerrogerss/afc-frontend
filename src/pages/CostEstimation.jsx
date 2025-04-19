@@ -79,6 +79,14 @@ function CostEstimation() {
     setError("");
     setCustomDays(null);
 
+    console.log("📤 Submitting cost estimation with:")
+    console.log("Job ID:", jobId);
+    console.log("Daily Rate:", formData.daily_rate);
+    console.log("Dirt Complexity:", formData.dirt_complexity);
+    console.log("Grade of Slope (%):", formData.grade_of_slope_complexity);
+    console.log("Productivity:", formData.productivity);
+
+
     try {
       const response = await fetch(`${API_URL}/new_bid/cost_estimation`, {
         method: "POST",
@@ -301,7 +309,12 @@ function CostEstimation() {
                 <tr
                   key={idx}
                   className={`cursor-pointer ${selectedCrewSize === option.crew_size ? 'bg-blue-100' : ''}`}
-                  onClick={() => setSelectedCrewSize(option.crew_size)}
+                  onClick={() =>
+                    setSelectedCrewSize(
+                      selectedCrewSize === option.crew_size ? null : option.crew_size
+                    )
+                  }
+                  
                 >
                   <td className="border px-2 py-1">{option.crew_size}</td>
                   <td className="border px-2 py-1">{formatNumber(option.estimated_days)}</td>
@@ -348,7 +361,12 @@ function CostEstimation() {
       <tr
         key={margin}
         className={`cursor-pointer ${selectedProfitMargin === margin ? 'bg-green-100' : ''}`}
-        onClick={() => setSelectedProfitMargin(margin)}
+        onClick={() =>
+          setSelectedProfitMargin(
+            selectedProfitMargin === margin ? null : margin
+          )
+        }
+        
       >
         <td className="border px-2 py-1">{margin}</td>
         <td className="border px-2 py-1">${formatNumber(values.revenue)}</td>
@@ -397,48 +415,74 @@ function CostEstimation() {
         </div>
       )}
 
-      {result?.costs && (
-        <>
-          <div className="mt-8 bg-gray-50 p-4 border rounded">
-            <h3 className="text-lg font-semibold mb-2">Summary</h3>
-            <p><strong>Material Total:</strong> ${formatNumber(result.costs.material_total)}</p>
-            <p><strong>Material Tax:</strong> ${formatNumber(result.costs.material_tax)}</p>
-            <p><strong>Delivery Charge:</strong> ${formatNumber(result.costs.delivery_charge)}</p>
-            <p><strong>Labor Cost:</strong> ${formatNumber(result.costs.labor_costs.total_labor_cost)}</p>
-            <p><strong>Total Cost:</strong> ${formatNumber(result.costs.total_cost)}</p>
-            <p><strong>Cost Per Linear Foot:</strong> ${formatNumber(result.price_per_linear_foot)}</p>
-            {selectedCrewSize && (() => {
-  const selectedOption = result.costs.labor_duration_options.find(
-    (option) => option.crew_size === selectedCrewSize
-  );
-  return (
-    <p>
-      <strong>Selected Crew Size:</strong> {selectedCrewSize} workers — Estimated Days: {formatNumber(selectedOption?.estimated_days || 0)}
-    </p>
-  );
-})()}
+{result?.costs && (
+  <>
+    <div className="mt-8 bg-gray-50 p-4 border rounded">
+      <h3 className="text-lg font-semibold mb-2">Summary</h3>
 
-{selectedProfitMargin && (() => {
-  const selected = result.costs.profit_margins[selectedProfitMargin];
-  return (
-    <p>
-      <strong>Selected Profit Margin:</strong> {selectedProfitMargin} — Price Per LF: ${formatNumber(selected?.price_per_linear_foot || 0)}
-    </p>
-  );
-})()}
+      <p><strong>Material Total:</strong> ${formatNumber(result.costs.material_total)}</p>
+      <p><strong>Material Tax:</strong> ${formatNumber(result.costs.material_tax)}</p>
+      <p><strong>Delivery Charge:</strong> ${formatNumber(result.costs.delivery_charge)}</p>
+      <p><strong>Labor Cost:</strong> ${formatNumber(result.costs.labor_costs.total_labor_cost)}</p>
+      <p><strong>Total Cost:</strong> ${formatNumber(result.costs.total_cost)}</p>
+      <p><strong>Cost Per Linear Foot:</strong> ${formatNumber(result.price_per_linear_foot)}</p>
 
-          </div>
+      {selectedCrewSize && (() => {
+        const selectedOption = result.costs.labor_duration_options.find(
+          (option) => option.crew_size === selectedCrewSize
+        );
+        return (
+          <p>
+            <strong>Selected Crew Size:</strong> {selectedCrewSize} workers — Estimated Days: {formatNumber(selectedOption?.estimated_days || 0)}
+          </p>
+        );
+      })()}
 
-          <div className="mt-6">
-            <button
-              onClick={handleGenerateProposal}
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-              Generate Job Bid
-            </button>
-          </div>
-        </>
+      {customCrewSize && customDays && (
+        <p>
+          <strong>Custom Crew Size:</strong> {customCrewSize} workers — Estimated Days: {formatNumber(customDays)}
+        </p>
       )}
+
+      {selectedProfitMargin && (() => {
+        const selected = result.costs.profit_margins[selectedProfitMargin];
+        return (
+          <p>
+            <strong>Selected Profit Margin:</strong> {selectedProfitMargin} — Price Per LF: ${formatNumber(selected?.price_per_linear_foot || 0)}
+          </p>
+        );
+      })()}
+
+{customProjection && (
+  <div className="mt-3 pt-2 border-t border-gray-300">
+    <p><strong>Custom Profit Margin:</strong> {customMargin}%</p>
+    <p><strong>Custom Price Per LF:</strong> ${formatNumber(customProjection.pricePerLF)}</p>
+    <p><strong>Custom Profit Per LF:</strong> ${formatNumber(customProjection.profitPerLF)}</p>
+    <button
+      onClick={() => {
+        setCustomMargin("");
+        setCustomProjection(null);
+      }}
+      className="mt-2 text-sm text-red-600 hover:underline"
+    >
+      ✖️ Remove Custom Profit Margin
+    </button>
+  </div>
+)}
+
+    </div>
+
+    <div className="mt-6">
+      <button
+        onClick={handleGenerateProposal}
+        className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+      >
+        Generate Job Bid
+      </button>
+    </div>
+  </>
+)}
+
     </div>
   );
 }
