@@ -16,6 +16,9 @@ function FenceDetails() {
     end_posts: "",
     height: "6",
     top_rail: "Yes",
+    style: "",
+    bob: "false",
+    with_chain_link: "Yes",
   });
 
   const [error, setError] = useState("");
@@ -39,6 +42,18 @@ function FenceDetails() {
       height: parseInt(formData.height),
       top_rail: formData.top_rail === "Yes",
     };
+
+    if (formData.fence_type === "Wood") {
+      payload.style = formData.style;
+      if (formData.style === "good neighbor") {
+        payload.bob = formData.bob === "true";
+      }
+    }
+
+    if (formData.fence_type === "Vinyl") {
+      payload.with_chain_link = formData.with_chain_link === "Yes";
+    }
+    
 
     try {
       const response = await fetch(`${API_URL}/new_bid/fence_details`, {
@@ -106,28 +121,118 @@ function FenceDetails() {
           </select>
         </label>
 
-        <label className="block">
-          Top Rail:
-          <select name="top_rail" value={formData.top_rail} onChange={handleChange} className="w-full mt-1 border px-3 py-2">
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-          </select>
-        </label>
+        {formData.fence_type === "Chain Link" && (
+  <label className="block">
+    Top Rail:
+    <select
+      name="top_rail"
+      value={formData.top_rail}
+      onChange={handleChange}
+      className="w-full mt-1 border px-3 py-2"
+    >
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+  </label>
+)}
 
-        {["linear_feet", "corner_posts", "end_posts"].map((field) => (
-          <label className="block" key={field}>
-            {field.replace("_", " ").replace(/\b\w/g, (l) => l.toUpperCase())}:
-            <input
-              type="number"
-              name={field}
-              value={formData[field]}
-              onChange={handleChange}
-              onWheel={(e) => e.target.blur()}
-              className="w-full mt-1 border px-3 py-2"
-              required={field !== "corner_posts" && field !== "end_posts"}
-            />
-          </label>
-        ))}
+
+
+        {/* Always show Linear Feet */}
+<label className="block">
+  Linear Feet:
+  <input
+    type="number"
+    name="linear_feet"
+    value={formData.linear_feet}
+    onChange={handleChange}
+    onWheel={(e) => e.target.blur()}
+    className="w-full mt-1 border px-3 py-2"
+    required
+  />
+</label>
+
+{/* Only show Corner Posts and End Posts for Chain Link and Vinyl */}
+{["Chain Link", "Vinyl"].includes(formData.fence_type) && (
+  <>
+    <label className="block">
+      Corner Posts:
+      <input
+        type="number"
+        name="corner_posts"
+        value={formData.corner_posts}
+        onChange={handleChange}
+        onWheel={(e) => e.target.blur()}
+        className="w-full mt-1 border px-3 py-2"
+      />
+    </label>
+
+    <label className="block">
+      End Posts:
+      <input
+        type="number"
+        name="end_posts"
+        value={formData.end_posts}
+        onChange={handleChange}
+        onWheel={(e) => e.target.blur()}
+        className="w-full mt-1 border px-3 py-2"
+      />
+    </label>
+  </>
+)}
+
+
+{formData.fence_type === "Wood" && (
+  <>
+    <label className="block">
+      Style:
+      <select
+        name="style"
+        value={formData.style}
+        onChange={handleChange}
+        className="w-full mt-1 border px-3 py-2"
+      >
+        <option value="">Select a style</option>
+        <option value="good neighbor">Good Neighbor</option>
+        <option value="dogeared">Dogeared</option>
+      </select>
+    </label>
+
+    {formData.style === "good neighbor" && (
+      <label className="block">
+        Bob Option:
+        <select
+          name="bob"
+          value={formData.bob}
+          onChange={handleChange}
+          className="w-full mt-1 border px-3 py-2"
+        >
+          <option value="false">No</option>
+          <option value="true">Yes</option>
+        </select>
+      </label>
+    )}
+  </>
+)}
+
+{formData.fence_type === "Vinyl" && (
+  <label className="block">
+    With Chain Link?:
+    <select
+      name="with_chain_link"
+      value={formData.with_chain_link}
+      onChange={handleChange}
+      className="w-full mt-1 border px-3 py-2"
+    >
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+  </label>
+)}
+
+
+
+
 
         <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full mt-4">
           Submit Fence Details
