@@ -32,6 +32,7 @@ function CostEstimation() {
   const [customCrewSize, setCustomCrewSize] = useState("");
   const [customDays, setCustomDays] = useState(null);
   const [customMargin, setCustomMargin] = useState("");
+  const [additionalLaborDays, setAdditionalLaborDays] = useState("");
   const [customProjection, setCustomProjection] = useState(null);
   const [selectedProfitMargin, setSelectedProfitMargin] = useState(null);
   const [selectedCrewSize, setSelectedCrewSize] = useState(null);
@@ -338,6 +339,18 @@ function CostEstimation() {
               </p>
             )}
           </div>
+
+          <div className="mt-4">
+  <label className="block text-sm font-medium mb-1">Additional Days of Labor Needed</label>
+  <input
+    type="number"
+    value={additionalLaborDays}
+    onChange={(e) => setAdditionalLaborDays(e.target.value)}
+    className="w-full border px-3 py-2"
+    placeholder="Enter number of extra days..."
+  />
+</div>
+
         </div>
       )}
 
@@ -423,8 +436,24 @@ function CostEstimation() {
       <p><strong>Material Total:</strong> ${formatNumber(result.costs.material_total)}</p>
       <p><strong>Material Tax:</strong> ${formatNumber(result.costs.material_tax)}</p>
       <p><strong>Delivery Charge:</strong> ${formatNumber(result.costs.delivery_charge)}</p>
-      <p><strong>Labor Cost:</strong> ${formatNumber(result.costs.labor_costs.total_labor_cost)}</p>
-      <p><strong>Total Cost:</strong> ${formatNumber(result.costs.total_cost)}</p>
+      {/* Labor Cost and Additional Labor */}
+<p><strong>Labor Cost:</strong> ${formatNumber(result.costs.labor_costs.total_labor_cost)}</p>
+
+{additionalLaborDays && (
+  <p className="ml-4 text-sm text-gray-700">
+    + ${formatNumber(additionalLaborDays * formData.daily_rate)} Additional Labor Needed
+  </p>
+)}
+
+{/* Updated Total Cost */}
+<p className="mt-2">
+  <strong>Total Cost:</strong> $
+  {formatNumber(
+    result.costs.total_cost + (additionalLaborDays ? additionalLaborDays * formData.daily_rate : 0)
+  )}
+</p>
+
+
       <p><strong>Cost Per Linear Foot:</strong> ${formatNumber(result.price_per_linear_foot)}</p>
 
       {selectedCrewSize && (() => {
