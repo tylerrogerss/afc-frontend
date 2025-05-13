@@ -143,6 +143,37 @@ function CostEstimation() {
     }
   };
 
+  const handleGenerateInternalSummary = async () => {
+    console.log("Sending request to /generate_internal_summary with job_id:", jobId); // Debug line
+  
+    try {
+      const response = await fetch(`${API_URL}/generate_internal_summary`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ job_id: jobId }),
+      });
+  
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "AFC_Internal_Summary.pdf";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } else {
+        const errorText = await response.text();
+        alert(`Failed to generate internal summary: ${errorText}`);
+      }
+    } catch (err) {
+      console.error("Error generating internal summary:", err);
+      alert("Server error while generating internal summary.");
+    }
+  };
+  
+  
+
   const handleCustomMarginSubmit = () => {
   const marginFloat = parseFloat(customMargin);
   const totalCost = result?.costs?.total_cost;
@@ -502,13 +533,23 @@ function CostEstimation() {
     </div>
 
     <div className="mt-6">
-      <button
-        onClick={handleGenerateProposal}
-        className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      >
-        Generate Job Bid
-      </button>
-    </div>
+  <button
+    onClick={handleGenerateInternalSummary}
+    className="w-full bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 mb-3"
+  >
+    Generate Internal Summary
+  </button>
+
+  <button
+    onClick={handleGenerateProposal}
+    className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+  >
+    Generate Job Bid
+  </button>
+</div>
+
+
+   
   </>
 )}
 
