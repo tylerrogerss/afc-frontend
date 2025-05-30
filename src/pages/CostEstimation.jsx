@@ -38,6 +38,20 @@ function CostEstimation() {
   const [selectedCrewSize, setSelectedCrewSize] = useState(null);
   const [error, setError] = useState("");
 
+  // helper: which crew size will really work those extra days?
+  const crewMultiplier = Math.round(
+    selectedCrewSize                       // row the user clicked
+    ?? (customCrewSize ? Number(customCrewSize) : null)  // typed size
+    ?? 3                                   // backend default crew
+  );
+
+  // helper: $ for the extra days
+  const additionalLaborCost =
+    Number(additionalLaborDays || 0) *
+    Number(formData.daily_rate || 0) *
+    crewMultiplier;
+
+
   useEffect(() => {
     if (!jobId) return;
     const fetchMaterials = async () => {
@@ -478,7 +492,7 @@ function CostEstimation() {
 
 {additionalLaborDays && (
   <p className="ml-4 text-sm text-gray-700">
-    + ${formatNumber(additionalLaborDays * formData.daily_rate)} Additional Labor Needed
+    + ${formatNumber(additionalLaborCost)} Additional Labor Needed
   </p>
 )}
 
@@ -486,7 +500,7 @@ function CostEstimation() {
 <p className="mt-2">
   <strong>Total Cost:</strong> $
   {formatNumber(
-    result.costs.total_cost + (additionalLaborDays ? additionalLaborDays * formData.daily_rate : 0)
+    result.costs.total_cost + additionalLaborCost
   )}
 </p>
 
