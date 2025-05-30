@@ -274,6 +274,7 @@ function CostEstimation() {
           <input
             type="number"
             name="daily_rate"
+            onWheel={(e) => e.target.blur()}
             value={formData.daily_rate}
             onChange={handleChange}
             className="w-full border px-3 py-2"
@@ -300,6 +301,7 @@ function CostEstimation() {
           <input
             type="number"
             name="grade_of_slope_complexity"
+            onWheel={(e) => e.target.blur()}
             value={formData.grade_of_slope_complexity}
             onChange={handleChange}
             className="w-full border px-3 py-2"
@@ -312,6 +314,7 @@ function CostEstimation() {
             type="number"
             step="0.01"
             name="productivity"
+            onWheel={(e) => e.target.blur()}
             value={formData.productivity}
             onChange={handleChange}
             className="w-full border px-3 py-2"
@@ -360,6 +363,7 @@ function CostEstimation() {
             <input
               type="number"
               value={customCrewSize}
+              onWheel={(e) => e.target.blur()}
               onChange={handleCrewSizeInput}
               className="w-full border px-3 py-2"
               placeholder="Enter crew size..."
@@ -376,6 +380,7 @@ function CostEstimation() {
   <input
     type="number"
     value={additionalLaborDays}
+    onWheel={(e) => e.target.blur()}
     onChange={(e) => setAdditionalLaborDays(e.target.value)}
     className="w-full border px-3 py-2"
     placeholder="Enter number of extra days..."
@@ -429,6 +434,7 @@ function CostEstimation() {
     <input
       type="number"
       step="0.1"
+      onWheel={(e) => e.target.blur()}
       className="border px-3 py-1 text-sm w-32"
       placeholder="e.g. 27.5"
       value={customMargin}
