@@ -158,35 +158,46 @@ function CostEstimation() {
   };
 
   const handleGenerateInternalSummary = async () => {
-    console.log("Sending request to /generate_internal_summary with job_id:", jobId); // Debug line
-  
-    try {
-      const response = await fetch(`${API_URL}/generate_internal_summary`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ job_id: jobId }),
-      });
-  
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "AFC_Internal_Summary.pdf";
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-      } else {
-        const errorText = await response.text();
-        alert(`Failed to generate internal summary: ${errorText}`);
-      }
-    } catch (err) {
-      console.error("Error generating internal summary:", err);
-      alert("Server error while generating internal summary.");
+  const crewSize = Number(selectedCrewSize) || Number(customCrewSize) || 3;
+  const estimatedDays = selectedCrewSize
+    ? result?.costs?.labor_duration_options?.find(
+        (opt) => opt.crew_size === selectedCrewSize
+      )?.estimated_days
+    : customDays;
+
+  try {
+    const response = await fetch(`${API_URL}/generate_internal_summary`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        job_id: jobId,
+        daily_rate: Number(formData.daily_rate),
+        crew_size: crewSize,
+        estimated_days: estimatedDays,
+        additional_days: Number(additionalLaborDays) || 0,
+      }),
+    });
+
+    if (response.ok) {
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "AFC_Internal_Summary.pdf";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } else {
+      const errorText = await response.text();
+      alert(`Failed to generate internal summary: ${errorText}`);
     }
-  };
-  
-  
+  } catch (err) {
+    console.error("Error generating internal summary:", err);
+    alert("Server error while generating internal summary.");
+  }
+};
+
+
 
   const handleCustomMarginSubmit = () => {
   const marginFloat = parseFloat(customMargin);
@@ -578,5 +589,3 @@ function CostEstimation() {
 }
 
 export default CostEstimation;
-
-
