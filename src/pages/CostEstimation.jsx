@@ -157,25 +157,30 @@ function CostEstimation() {
     }
   };
 
-  const handleGenerateInternalSummary = async () => {
+ const handleGenerateInternalSummary = async () => {
   const crewSize = Number(selectedCrewSize) || Number(customCrewSize) || 3;
   const estimatedDays = selectedCrewSize
-    ? result?.costs?.labor_duration_options?.find(
-        (opt) => opt.crew_size === selectedCrewSize
-      )?.estimated_days
-    : customDays;
+    ? Math.round(
+        result?.costs?.labor_duration_options?.find(
+          (opt) => opt.crew_size === selectedCrewSize
+        )?.estimated_days || 0
+      )
+    : Math.round(Number(customDays));
+
+  const payload = {
+    job_id: jobId,
+    daily_rate: Number(formData.daily_rate),
+    crew_size: crewSize,
+    estimated_days: estimatedDays,
+    additional_days: Number(additionalLaborDays) || 0,
+    custom_margin: customMargin ? Number(customMargin) : undefined,  // ✅ this line adds it
+  };
 
   try {
     const response = await fetch(`${API_URL}/generate_internal_summary`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        job_id: jobId,
-        daily_rate: Number(formData.daily_rate),
-        crew_size: crewSize,
-        estimated_days: estimatedDays,
-        additional_days: Number(additionalLaborDays) || 0,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (response.ok) {
@@ -196,6 +201,9 @@ function CostEstimation() {
     alert("Server error while generating internal summary.");
   }
 };
+
+
+
 
 
 
