@@ -165,15 +165,15 @@ function CostEstimation() {
           (opt) => opt.crew_size === selectedCrewSize
         )?.estimated_days || 0
       )
-    : Math.round(Number(customDays));
+    : Math.round(Number(customDays) || 0); // ✅ round this too
 
   const payload = {
     job_id: jobId,
     daily_rate: Number(formData.daily_rate),
     crew_size: crewSize,
     estimated_days: estimatedDays,
-    additional_days: Number(additionalLaborDays) || 0,
-    custom_margin: customMargin ? Number(customMargin) : undefined,  // ✅ this line adds it
+    additional_days: Math.round(Number(additionalLaborDays) || 0), // ✅ ensure this is also int
+    custom_margin: customMargin ? Number(customMargin) / 100 : undefined,
   };
 
   try {
@@ -201,6 +201,8 @@ function CostEstimation() {
     alert("Server error while generating internal summary.");
   }
 };
+
+
 
 
 
