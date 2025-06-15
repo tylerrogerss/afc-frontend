@@ -1,8 +1,38 @@
-// === FenceDetails.jsx ===
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const API_URL = "https://afc-proposal.onrender.com";
+
+// Spinner Component (inline CSS)
+function Spinner() {
+  return (
+    <div className="spinner-container">
+      <div className="spinner" />
+      <style>
+        {`
+        .spinner-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 120px;
+        }
+        .spinner {
+          border: 4px solid #f3f3f3;
+          border-top: 4px solid #38bdf8;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg);}
+          100% { transform: rotate(360deg);}
+        }
+        `}
+      </style>
+    </div>
+  );
+}
 
 function FenceDetails() {
   const { state } = useLocation();
@@ -23,9 +53,8 @@ function FenceDetails() {
 
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
-
   const [materialsFetched, setMaterialsFetched] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,6 +64,7 @@ function FenceDetails() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
 
     const payload = {
       job_id: jobId,
@@ -80,7 +110,6 @@ function FenceDetails() {
         if (materialRes.ok) {
           const materialData = await materialRes.json();
           setMaterialsFetched(true); // Show the "Generate Job Spec Sheet" button
-
         } else {
           console.warn("Failed to fetch material breakdown");
         }
@@ -89,10 +118,13 @@ function FenceDetails() {
       }
     } catch (err) {
       setError("Failed to connect to server.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleGenerateSpecSheet = async () => {
+    setIsLoading(true);
     try {
       const response = await fetch(`${API_URL}/generate_job_spec_sheet`, {
         method: "POST",
@@ -114,6 +146,8 @@ function FenceDetails() {
       }
     } catch (err) {
       alert("Server error while generating spec sheet.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -123,160 +157,165 @@ function FenceDetails() {
 
       {error && <p className="text-red-600 mb-4">{error}</p>}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <label className="block">
-          Fence Type:
-          <select name="fence_type" value={formData.fence_type} onChange={handleChange} className="w-full mt-1 border px-3 py-2">
-            <option>Chain Link</option>
-            <option>SP Wrought Iron</option>
-            <option>Vinyl</option>
-            <option>Wood</option>
-          </select>
-        </label>
-
-        <label className="block">
-          Height:
-          <select name="height" value={formData.height} onChange={handleChange} className="w-full mt-1 border px-3 py-2">
-            <option value="4">4 ft</option>
-            <option value="5">5 ft</option>
-            <option value="6">6 ft</option>
-          </select>
-        </label>
-
-        {formData.fence_type === "Chain Link" && (
-          <label className="block">
-            Top Rail:
-            <select
-              name="top_rail"
-              value={formData.top_rail}
-              onChange={handleChange}
-              className="w-full mt-1 border px-3 py-2"
-            >
-              <option value="Yes">Yes</option>
-              <option value="No">No</option>
-            </select>
-          </label>
-        )}
-
-        <label className="block">
-          Linear Feet:
-          <input
-            type="number"
-            name="linear_feet"
-            value={formData.linear_feet}
-            onChange={handleChange}
-            onWheel={(e) => e.target.blur()}
-            className="w-full mt-1 border px-3 py-2"
-            required
-          />
-        </label>
-
-        {["Chain Link", "Vinyl"].includes(formData.fence_type) && (
-          <>
+      {isLoading ? (
+        <Spinner />
+      ) : (
+        <>
+          <form onSubmit={handleSubmit} className="space-y-4">
             <label className="block">
-              Corner Posts:
-              <input
-                type="number"
-                name="corner_posts"
-                value={formData.corner_posts}
-                onChange={handleChange}
-                onWheel={(e) => e.target.blur()}
-                className="w-full mt-1 border px-3 py-2"
-              />
-            </label>
-
-            <label className="block">
-              End Posts:
-              <input
-                type="number"
-                name="end_posts"
-                value={formData.end_posts}
-                onChange={handleChange}
-                onWheel={(e) => e.target.blur()}
-                className="w-full mt-1 border px-3 py-2"
-              />
-            </label>
-          </>
-        )}
-
-        {formData.fence_type === "Wood" && (
-          <>
-            <label className="block">
-              Style:
-              <select
-                name="style"
-                value={formData.style}
-                onChange={handleChange}
-                className="w-full mt-1 border px-3 py-2"
-              >
-                <option value="">Select a style</option>
-                <option value="good neighbor">Good Neighbor</option>
-                <option value="dogeared">Dogeared</option>
+              Fence Type:
+              <select name="fence_type" value={formData.fence_type} onChange={handleChange} className="w-full mt-1 border px-3 py-2">
+                <option>Chain Link</option>
+                <option>SP Wrought Iron</option>
+                <option>Vinyl</option>
+                <option>Wood</option>
               </select>
             </label>
 
-            {formData.style === "good neighbor" && (
+            <label className="block">
+              Height:
+              <select name="height" value={formData.height} onChange={handleChange} className="w-full mt-1 border px-3 py-2">
+                <option value="4">4 ft</option>
+                <option value="5">5 ft</option>
+                <option value="6">6 ft</option>
+              </select>
+            </label>
+
+            {formData.fence_type === "Chain Link" && (
               <label className="block">
-                Bob Option:
+                Top Rail:
                 <select
-                  name="bob"
-                  value={formData.bob}
+                  name="top_rail"
+                  value={formData.top_rail}
                   onChange={handleChange}
                   className="w-full mt-1 border px-3 py-2"
                 >
-                  <option value="false">No</option>
-                  <option value="true">Yes</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
                 </select>
               </label>
             )}
-          </>
-        )}
 
-        {formData.fence_type === "Vinyl" && (
-          <label className="block">
-            With Chain Link?:
-            <select
-              name="with_chain_link"
-              value={formData.with_chain_link}
-              onChange={handleChange}
-              className="w-full mt-1 border px-3 py-2"
+            <label className="block">
+              Linear Feet:
+              <input
+                type="number"
+                name="linear_feet"
+                value={formData.linear_feet}
+                onChange={handleChange}
+                onWheel={(e) => e.target.blur()}
+                className="w-full mt-1 border px-3 py-2"
+                required
+              />
+            </label>
+
+            {["Chain Link", "Vinyl"].includes(formData.fence_type) && (
+              <>
+                <label className="block">
+                  Corner Posts:
+                  <input
+                    type="number"
+                    name="corner_posts"
+                    value={formData.corner_posts}
+                    onChange={handleChange}
+                    onWheel={(e) => e.target.blur()}
+                    className="w-full mt-1 border px-3 py-2"
+                  />
+                </label>
+
+                <label className="block">
+                  End Posts:
+                  <input
+                    type="number"
+                    name="end_posts"
+                    value={formData.end_posts}
+                    onChange={handleChange}
+                    onWheel={(e) => e.target.blur()}
+                    className="w-full mt-1 border px-3 py-2"
+                  />
+                </label>
+              </>
+            )}
+
+            {formData.fence_type === "Wood" && (
+              <>
+                <label className="block">
+                  Style:
+                  <select
+                    name="style"
+                    value={formData.style}
+                    onChange={handleChange}
+                    className="w-full mt-1 border px-3 py-2"
+                  >
+                    <option value="">Select a style</option>
+                    <option value="good neighbor">Good Neighbor</option>
+                    <option value="dogeared">Dogeared</option>
+                  </select>
+                </label>
+
+                {formData.style === "good neighbor" && (
+                  <label className="block">
+                    Bob Option:
+                    <select
+                      name="bob"
+                      value={formData.bob}
+                      onChange={handleChange}
+                      className="w-full mt-1 border px-3 py-2"
+                    >
+                      <option value="false">No</option>
+                      <option value="true">Yes</option>
+                    </select>
+                  </label>
+                )}
+              </>
+            )}
+
+            {formData.fence_type === "Vinyl" && (
+              <label className="block">
+                With Chain Link?:
+                <select
+                  name="with_chain_link"
+                  value={formData.with_chain_link}
+                  onChange={handleChange}
+                  className="w-full mt-1 border px-3 py-2"
+                >
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </label>
+            )}
+
+            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full mt-4">
+              Submit Fence Details
+            </button>
+          </form>
+
+          {submitted && (
+            <button
+              onClick={handleGenerateSpecSheet}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full mt-4"
             >
-              <option value="Yes">Yes</option>
-              <option value="No">No</option>
-            </select>
-          </label>
-        )}
+              Generate Job Spec Sheet
+            </button>
+          )}
 
-        <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full mt-4">
-          Submit Fence Details
-        </button>
-      </form>
-
-      {submitted && (
-        <button
-          onClick={handleGenerateSpecSheet}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full mt-4"
-        >
-          Generate Job Spec Sheet
-        </button>
+          {submitted && materialsFetched && (
+            <button
+              onClick={() =>
+                navigate("/cost-estimation", {
+                  state: {
+                    job_id: jobId,
+                    linear_feet: formData.linear_feet,
+                  },
+                })
+              }
+              className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 w-full mt-4"
+            >
+              Continue
+            </button>
+          )}
+        </>
       )}
-
-{submitted && materialsFetched && (
-  <button
-    onClick={() =>
-      navigate("/cost-estimation", {
-        state: {
-          job_id: jobId,
-          linear_feet: formData.linear_feet,
-        },
-      })
-    }
-    className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 w-full mt-4"
-  >
-    Continue
-  </button>
-)}
-
     </div>
   );
 }
