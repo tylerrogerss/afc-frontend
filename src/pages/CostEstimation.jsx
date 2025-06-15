@@ -165,15 +165,24 @@ function CostEstimation() {
           (opt) => opt.crew_size === selectedCrewSize
         )?.estimated_days || 0
       )
-    : Math.round(Number(customDays) || 0); // ✅ round this too
+    : Math.round(Number(customDays) || 0);
+
+  // --- HIGHLIGHTED PROFIT MARGIN LOGIC ---
+  let customMarginNum = undefined;
+  if (selectedProfitMargin) {
+    // Remove percent sign if present, parse to float, divide by 100
+    customMarginNum = parseFloat(selectedProfitMargin.replace('%', '')) / 100;
+  } else if (customMargin) {
+    customMarginNum = parseFloat(customMargin) / 100;
+  }
 
   const payload = {
     job_id: jobId,
     daily_rate: Number(formData.daily_rate),
     crew_size: crewSize,
     estimated_days: estimatedDays,
-    additional_days: Math.round(Number(additionalLaborDays) || 0), // ✅ ensure this is also int
-    custom_margin: customMargin ? Number(customMargin) / 100 : undefined,
+    additional_days: Math.round(Number(additionalLaborDays) || 0),
+    custom_margin: customMarginNum,
   };
 
   try {
@@ -209,6 +218,7 @@ function CostEstimation() {
 
 
 
+
   const handleCustomMarginSubmit = () => {
   const marginFloat = parseFloat(customMargin);
   const totalCost = result?.costs?.total_cost;
@@ -234,6 +244,9 @@ function CostEstimation() {
     pricePerLF,
     profitPerLF,
   });
+
+  setSelectedProfitMargin(`${marginFloat}%`);
+
 };
 
   
