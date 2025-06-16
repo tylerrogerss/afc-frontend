@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 const API_URL = "https://afc-proposal.onrender.com";
 
-// Spinner Component (inline CSS)
 function Spinner() {
   return (
     <div className="spinner-container">
@@ -58,6 +57,21 @@ function FenceDetails() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // Reset height when fence type changes
+    if (name === "fence_type") {
+      if (value === "Wood") {
+        setFormData((prev) => ({ ...prev, [name]: value, height: "6" }));
+        return;
+      } else if (value === "Vinyl") {
+        setFormData((prev) => ({ ...prev, [name]: value, height: "4" }));
+        return;
+      } else if (value === "SP Wrought Iron") {
+        setFormData((prev) => ({ ...prev, [name]: value, height: "4" }));
+        return;
+      }
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -83,7 +97,7 @@ function FenceDetails() {
       }
     }
 
-    if (formData.fence_type === "Vinyl") {
+    if (formData.fence_type === "Vinyl" && formData.height !== "4") {
       payload.with_chain_link = formData.with_chain_link === "Yes";
     }
 
@@ -108,8 +122,8 @@ function FenceDetails() {
         });
 
         if (materialRes.ok) {
-          const materialData = await materialRes.json();
-          setMaterialsFetched(true); // Show the "Generate Job Spec Sheet" button
+          await materialRes.json();
+          setMaterialsFetched(true);
         } else {
           console.warn("Failed to fetch material breakdown");
         }
@@ -151,15 +165,35 @@ function FenceDetails() {
     }
   };
 
+  // Dynamically show height options based on fence type
+  const getHeightOptions = () => {
+    switch (formData.fence_type) {
+      case "Wood":
+        return [{ value: "6", label: "6 ft" }];
+      case "Vinyl":
+        return [
+          { value: "4", label: "4 ft" },
+          { value: "5", label: "5 ft" },
+        ];
+      case "SP Wrought Iron":
+        return [
+          { value: "4", label: "4 ft" },
+          { value: "5", label: "5 ft" },
+        ];
+      default:
+        return [
+          { value: "4", label: "4 ft" },
+          { value: "5", label: "5 ft" },
+          { value: "6", label: "6 ft" },
+        ];
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto mt-10 p-6 bg-white shadow rounded">
       <h2 className="text-2xl font-semibold mb-4">Fence Details</h2>
-
       {error && <p className="text-red-600 mb-4">{error}</p>}
-
-      {isLoading ? (
-        <Spinner />
-      ) : (
+      {isLoading ? <Spinner /> : (
         <>
           <form onSubmit={handleSubmit} className="space-y-4">
             <label className="block">
@@ -175,21 +209,16 @@ function FenceDetails() {
             <label className="block">
               Height:
               <select name="height" value={formData.height} onChange={handleChange} className="w-full mt-1 border px-3 py-2">
-                <option value="4">4 ft</option>
-                <option value="5">5 ft</option>
-                <option value="6">6 ft</option>
+                {getHeightOptions().map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
               </select>
             </label>
 
             {formData.fence_type === "Chain Link" && (
               <label className="block">
                 Top Rail:
-                <select
-                  name="top_rail"
-                  value={formData.top_rail}
-                  onChange={handleChange}
-                  className="w-full mt-1 border px-3 py-2"
-                >
+                <select name="top_rail" value={formData.top_rail} onChange={handleChange} className="w-full mt-1 border px-3 py-2">
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
                 </select>
@@ -198,41 +227,19 @@ function FenceDetails() {
 
             <label className="block">
               Linear Feet:
-              <input
-                type="number"
-                name="linear_feet"
-                value={formData.linear_feet}
-                onChange={handleChange}
-                onWheel={(e) => e.target.blur()}
-                className="w-full mt-1 border px-3 py-2"
-                required
-              />
+              <input type="number" name="linear_feet" value={formData.linear_feet} onChange={handleChange} onWheel={(e) => e.target.blur()} className="w-full mt-1 border px-3 py-2" required />
             </label>
 
             {["Chain Link", "Vinyl"].includes(formData.fence_type) && (
               <>
                 <label className="block">
                   Corner Posts:
-                  <input
-                    type="number"
-                    name="corner_posts"
-                    value={formData.corner_posts}
-                    onChange={handleChange}
-                    onWheel={(e) => e.target.blur()}
-                    className="w-full mt-1 border px-3 py-2"
-                  />
+                  <input type="number" name="corner_posts" value={formData.corner_posts} onChange={handleChange} onWheel={(e) => e.target.blur()} className="w-full mt-1 border px-3 py-2" />
                 </label>
 
                 <label className="block">
                   End Posts:
-                  <input
-                    type="number"
-                    name="end_posts"
-                    value={formData.end_posts}
-                    onChange={handleChange}
-                    onWheel={(e) => e.target.blur()}
-                    className="w-full mt-1 border px-3 py-2"
-                  />
+                  <input type="number" name="end_posts" value={formData.end_posts} onChange={handleChange} onWheel={(e) => e.target.blur()} className="w-full mt-1 border px-3 py-2" />
                 </label>
               </>
             )}
@@ -241,12 +248,7 @@ function FenceDetails() {
               <>
                 <label className="block">
                   Style:
-                  <select
-                    name="style"
-                    value={formData.style}
-                    onChange={handleChange}
-                    className="w-full mt-1 border px-3 py-2"
-                  >
+                  <select name="style" value={formData.style} onChange={handleChange} className="w-full mt-1 border px-3 py-2">
                     <option value="">Select a style</option>
                     <option value="good neighbor">Good Neighbor</option>
                     <option value="dogeared">Dogeared</option>
@@ -256,12 +258,7 @@ function FenceDetails() {
                 {formData.style === "good neighbor" && (
                   <label className="block">
                     Bob Option:
-                    <select
-                      name="bob"
-                      value={formData.bob}
-                      onChange={handleChange}
-                      className="w-full mt-1 border px-3 py-2"
-                    >
+                    <select name="bob" value={formData.bob} onChange={handleChange} className="w-full mt-1 border px-3 py-2">
                       <option value="false">No</option>
                       <option value="true">Yes</option>
                     </select>
@@ -270,15 +267,10 @@ function FenceDetails() {
               </>
             )}
 
-            {formData.fence_type === "Vinyl" && (
+            {formData.fence_type === "Vinyl" && formData.height !== "4" && (
               <label className="block">
                 With Chain Link?:
-                <select
-                  name="with_chain_link"
-                  value={formData.with_chain_link}
-                  onChange={handleChange}
-                  className="w-full mt-1 border px-3 py-2"
-                >
+                <select name="with_chain_link" value={formData.with_chain_link} onChange={handleChange} className="w-full mt-1 border px-3 py-2">
                   <option value="Yes">Yes</option>
                   <option value="No">No</option>
                 </select>
@@ -291,26 +283,13 @@ function FenceDetails() {
           </form>
 
           {submitted && (
-            <button
-              onClick={handleGenerateSpecSheet}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full mt-4"
-            >
+            <button onClick={handleGenerateSpecSheet} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full mt-4">
               Generate Job Spec Sheet
             </button>
           )}
 
           {submitted && materialsFetched && (
-            <button
-              onClick={() =>
-                navigate("/cost-estimation", {
-                  state: {
-                    job_id: jobId,
-                    linear_feet: formData.linear_feet,
-                  },
-                })
-              }
-              className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 w-full mt-4"
-            >
+            <button onClick={() => navigate("/cost-estimation", { state: { job_id: jobId, linear_feet: formData.linear_feet }})} className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 w-full mt-4">
               Continue
             </button>
           )}
@@ -321,3 +300,4 @@ function FenceDetails() {
 }
 
 export default FenceDetails;
+
