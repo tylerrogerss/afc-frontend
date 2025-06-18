@@ -97,9 +97,10 @@ function FenceDetails() {
       }
     }
 
-    if (formData.fence_type === "Vinyl" && formData.height !== "4") {
-      payload.with_chain_link = formData.with_chain_link === "Yes";
-    }
+    if (formData.fence_type === "Vinyl") {
+  payload.with_chain_link = formData.height === "4" ? false : formData.with_chain_link === "Yes";
+}
+
 
     try {
       const response = await fetch(`${API_URL}/new_bid/fence_details`, {
